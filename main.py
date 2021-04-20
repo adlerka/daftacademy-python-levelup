@@ -39,7 +39,10 @@ class AuthResponse(BaseModel):
 @app.get("/auth", response_model=AuthResponse)
 def authorize(password: str, password_hash: str, response: Response):
     response.status_code = 401
-    if password and password_hash and password_hash == str(sha512(bytes(password, encoding="ASCII")).hexdigest()):
-        response.status_code = 204
+    try:
+        if password and password_hash and password_hash == str(sha512(bytes(password, encoding="ASCII")).hexdigest()):
+            response.status_code = 204
+    except Exception:
+        response.status_code = 401
     return AuthResponse(status_code=response.status_code)
 
