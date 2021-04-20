@@ -68,7 +68,7 @@ class RegistrationInfo(BaseModel):
 @app.post("/register", response_model=RegistrationInfo)
 def register_patient(response: Response, patient: Patient):
     app.patient_id += 1
-    how_many_days = len(patient.name) + len(patient.surname)
+    how_many_days = len(patient.name.strip()) + len(patient.surname.strip())
     registration_date = date.today()
     vaccination_date = registration_date + timedelta(days=how_many_days)
     response.status_code = 201
