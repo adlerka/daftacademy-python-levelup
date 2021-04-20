@@ -10,6 +10,7 @@ from pydantic.main import BaseModel
 app = FastAPI()
 app.counter = 0
 app.patient_id = 0
+app.patients_register = dict()
 
 
 @app.get("/")
@@ -73,10 +74,22 @@ def register_patient(response: Response, patient: Patient):
     registration_date = date.today()
     vaccination_date = registration_date + timedelta(days=how_many_days)
     response.status_code = 201
-    return RegistrationInfo(
-        id=app.patient_id,
-        name=patient.name,
-        surname=patient.surname,
-        register_date=registration_date.strftime("%Y-%m-%d"),
-        vaccination_date=vaccination_date.strftime("%Y-%m-%d")
-    )
+    app.patients_register[app.patient_id] = RegistrationInfo(
+                                                id=app.patient_id,
+                                                name=patient.name,
+                                                surname=patient.surname,
+                                                register_date=registration_date.strftime("%Y-%m-%d"),
+                                                vaccination_date=vaccination_date.strftime("%Y-%m-%d")
+                                            )
+    return app.patients_register[app.patient_id]
+
+
+@app.get("/patient/{id}", response_model=Optional[RegistrationInfo])
+def get_patient(response: Response, id: int):
+    if id < 1:
+        response.status_code = 400
+    elif id not in app.patients_register:
+        response.status_code = 404
+    else:
+        response.status_code = 200
+        return app.patients_register[id]
