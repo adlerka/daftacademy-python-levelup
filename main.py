@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import FastAPI, Request, Response
 from hashlib import sha512
 
@@ -37,7 +39,7 @@ class AuthResponse(BaseModel):
 
 
 @app.get("/auth", response_model=AuthResponse)
-def authorize(password: str, password_hash: str, response: Response):
+def authorize(response: Response, password: Optional[str] = None, password_hash: Optional[str] = None):
     response.status_code = 401
     try:
         if password and password_hash and password_hash == str(sha512(bytes(password, encoding="ASCII")).hexdigest()):
@@ -45,4 +47,3 @@ def authorize(password: str, password_hash: str, response: Response):
     except Exception:
         response.status_code = 401
     return AuthResponse(status_code=response.status_code)
-
