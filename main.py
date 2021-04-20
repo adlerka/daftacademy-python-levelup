@@ -1,3 +1,5 @@
+import datetime
+from datetime import timedelta, date
 from typing import Optional
 
 from fastapi import FastAPI, Request, Response
@@ -7,6 +9,7 @@ from pydantic.main import BaseModel
 
 app = FastAPI()
 app.counter = 0
+app.patient_id = 0
 
 
 @app.get("/")
@@ -47,3 +50,32 @@ def authorize(response: Response, password: Optional[str] = None, password_hash:
     except Exception:
         response.status_code = 401
     return AuthResponse(status_code=response.status_code)
+
+
+class Patient(BaseModel):
+    name: str
+    surname: str
+
+
+class RegistrationInfo(BaseModel):
+    id: int
+    name: str
+    surname: str
+    register_date: str
+    vaccination_date: str
+
+
+@app.post("/register", response_model=RegistrationInfo)
+def register_patient(response: Response, patient: Patient):
+    app.patient_id += 1
+    how_many_days = len(patient.name) + len(patient.surname)
+    registration_date = date.today()
+    vaccination_date = registration_date + timedelta(days=how_many_days)
+    response.status_code = 201
+    return RegistrationInfo(
+        id=app.patient_id,
+        name=patient.name,
+        surname=patient.surname,
+        register_date=registration_date.strftime("%Y-%m-%d"),
+        vaccination_date=vaccination_date.strftime("%Y-%m-%d")
+    )
