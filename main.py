@@ -3,6 +3,7 @@ from datetime import timedelta, date
 from typing import Optional
 
 from fastapi import FastAPI, Request, Response
+from fastapi.responses import HTMLResponse
 from hashlib import sha512
 
 from pydantic.main import BaseModel
@@ -93,3 +94,15 @@ def get_patient(response: Response, id: int):
     else:
         response.status_code = 200
         return app.patients_register[id]
+
+
+@app.get("/hello", response_class=HTMLResponse)
+def hello():
+    today = date.today()
+    return f"""
+    <html>
+        <body>
+            <h1>Hello! Today date is {today.strftime("%Y-%m-%d")}</h1>
+        </body>
+    </html>
+    """
