@@ -4,7 +4,7 @@ from datetime import timedelta, date
 from typing import Optional, List
 
 from fastapi import FastAPI, Request, Response, Query, Cookie, Depends
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from hashlib import sha512, sha256
 
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -15,6 +15,7 @@ app.counter = 0
 app.patient_id = 0
 app.patients_register = dict()
 app.secret_key = 0
+app.login_token = None
 
 
 @app.get("/")
@@ -134,5 +135,29 @@ def check_token(response: Response, credentials: HTTPBasicCredentials = Depends(
     if correct_username and correct_password:
         response.status_code = 201
         token = sha256(f"4dm1nNotSoSecurePa$${app.secret_key}".encode()).hexdigest()
+        app.login_token = token
         app.secret_key += 1
         return {"token": token}
+
+
+@app.get("/welcome_session")
+def welcome_session(response: Response, format: Optional[str] = None, session_token: str = Cookie(None)):
+    response.status_code = 401
+    if session_token:
+        return return_message(message_format=format)
+
+
+@app.get("/welcome_token")
+def welcome_token(response: Response, token: str, format: Optional[str] = None):
+    response.status_code = 401
+    if app.login_token is not None and app.login_token == token:
+        return return_message(format)
+
+
+def return_message(message_format: Optional[str]):
+    if message_format == "json":
+        return JSONResponse(content={"message": "Welcome!"}, status_code=200)
+    if message_format == "html":
+        return HTMLResponse(content="<html><h1>Welcome!</h1></html>", status_code=200)
+    return PlainTextResponse(content="Welcome!", status_code=200)
+
