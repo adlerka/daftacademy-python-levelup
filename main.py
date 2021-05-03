@@ -4,7 +4,7 @@ from datetime import timedelta, date
 from typing import Optional, List
 
 from fastapi import FastAPI, Request, Response, Query, Cookie, Depends
-from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from hashlib import sha512, sha256
 
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -145,20 +145,40 @@ def check_token(response: Response, credentials: HTTPBasicCredentials = Depends(
 def welcome_session(response: Response, format: Optional[str] = None, session_token: str = Cookie(None)):
     response.status_code = 401
     if session_token in app.session_tokens:
-        return return_message(message_format=format)
+        return return_message(text="Welcome!", message_format=format)
 
 
 @app.get("/welcome_token")
 def welcome_token(response: Response, token: str, format: Optional[str] = None):
     response.status_code = 401
     if token in app.login_tokens:
-        return return_message(format)
+        return return_message(text="Welcome!", message_format=format)
 
 
-def return_message(message_format: Optional[str]):
+def return_message(text: str, message_format: Optional[str]):
     if message_format == "json":
-        return JSONResponse(content={"message": "Welcome!"}, status_code=200)
+        return JSONResponse(content={"message": text}, status_code=200)
     if message_format == "html":
-        return HTMLResponse(content="<html><h1>Welcome!</h1></html>", status_code=200)
-    return PlainTextResponse(content="Welcome!", status_code=200)
+        return HTMLResponse(content=f"<html><h1>{text}</h1></html>", status_code=200)
+    return PlainTextResponse(content=text, status_code=200)
 
+
+@app.delete("/logout_session")
+def logout_session(response: Response, format: Optional[str] = None, session_token: str = Cookie(None)):
+    response.status_code = 401
+    if session_token in app.session_tokens:
+        app.session_tokens.remove(session_token)
+        return RedirectResponse(url="/logged_out" + f"?format={format}", status_code=303)
+
+
+@app.delete("/logout_token")
+def logout_token(response: Response, token: str, format: Optional[str] = None):
+    response.status_code = 401
+    if token in app.login_tokens:
+        app.login_tokens.remove(token)
+        return RedirectResponse(url="/logged_out" + f"?format={format}", status_code=303)
+
+
+@app.get("/logged_out")
+def logged_out(format: Optional[str] = None):
+    return return_message(text="Logged out!", message_format=format)
