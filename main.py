@@ -15,8 +15,8 @@ app.counter = 0
 app.patient_id = 0
 app.patients_register = dict()
 app.secret_key = 0
-app.login_token = None
-
+app.login_tokens = list()
+app.session_tokens = list()
 
 @app.get("/")
 def root():
@@ -123,6 +123,7 @@ def create_session(response: Response, credentials: HTTPBasicCredentials = Depen
     if correct_username and correct_password:
         response.status_code = 201
         session_token = sha256(f"4dm1nNotSoSecurePa$${app.secret_key}".encode()).hexdigest()
+        app.session_tokens.append(session_token)
         response.set_cookie(key="session_token", value=session_token)
         app.secret_key += 1
 
@@ -135,7 +136,7 @@ def check_token(response: Response, credentials: HTTPBasicCredentials = Depends(
     if correct_username and correct_password:
         response.status_code = 201
         token = sha256(f"4dm1nNotSoSecurePa$${app.secret_key}".encode()).hexdigest()
-        app.login_token = token
+        app.login_tokens.append(token)
         app.secret_key += 1
         return {"token": token}
 
@@ -143,14 +144,14 @@ def check_token(response: Response, credentials: HTTPBasicCredentials = Depends(
 @app.get("/welcome_session")
 def welcome_session(response: Response, format: Optional[str] = None, session_token: str = Cookie(None)):
     response.status_code = 401
-    if session_token:
+    if session_token in app.session_tokens:
         return return_message(message_format=format)
 
 
 @app.get("/welcome_token")
 def welcome_token(response: Response, token: str, format: Optional[str] = None):
     response.status_code = 401
-    if app.login_token is not None and token is not None and app.login_token == token:
+    if token in app.login_tokens:
         return return_message(format)
 
 
