@@ -1,10 +1,10 @@
 import datetime
 from datetime import timedelta, date
-from typing import Optional
+from typing import Optional, List
 
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, Query, Cookie
 from fastapi.responses import HTMLResponse
-from hashlib import sha512
+from hashlib import sha512, sha256
 
 from pydantic.main import BaseModel
 
@@ -12,6 +12,7 @@ app = FastAPI()
 app.counter = 0
 app.patient_id = 0
 app.patients_register = dict()
+app.secret_key = 0
 
 
 @app.get("/")
@@ -106,3 +107,21 @@ def hello():
         </body>
     </html>
     """
+
+
+@app.post("/login_session")
+def create_session(response: Response, query: List[str] = Query(None)):
+    response.status_code = 401
+    if query is not None and "4dm1n" and "NotSoSecurePa$$" in query:
+        response.status_code = 201
+        session_token = sha256(f"4dm1nNotSoSecurePa$${app.secret_key}".encode()).hexdigest()
+        response.set_cookie(key="session_token", value=session_token)
+        app.secret_key += 1
+
+
+@app.post("/login_token")
+def check_token(response: Response, query: List[str] = Query(None), session_token: str = Cookie(None)):
+    response.status_code = 401
+    if query is not None and "4dm1n" and "NotSoSecurePa$$" in query:
+        response.status_code = 201
+        return {"token": session_token}
