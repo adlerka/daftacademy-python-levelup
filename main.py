@@ -1,11 +1,13 @@
+import secrets
 import datetime
 from datetime import timedelta, date
 from typing import Optional, List
 
-from fastapi import FastAPI, Request, Response, Query, Cookie
+from fastapi import FastAPI, Request, Response, Query, Cookie, Depends
 from fastapi.responses import HTMLResponse
 from hashlib import sha512, sha256
 
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic.main import BaseModel
 
 app = FastAPI()
@@ -77,12 +79,12 @@ def register_patient(response: Response, patient: Patient):
     vaccination_date = registration_date + timedelta(days=how_many_days)
     response.status_code = 201
     app.patients_register[app.patient_id] = RegistrationInfo(
-                                                id=app.patient_id,
-                                                name=patient.name,
-                                                surname=patient.surname,
-                                                register_date=registration_date.strftime("%Y-%m-%d"),
-                                                vaccination_date=vaccination_date.strftime("%Y-%m-%d")
-                                            )
+        id=app.patient_id,
+        name=patient.name,
+        surname=patient.surname,
+        register_date=registration_date.strftime("%Y-%m-%d"),
+        vaccination_date=vaccination_date.strftime("%Y-%m-%d")
+    )
     return app.patients_register[app.patient_id]
 
 
@@ -109,10 +111,15 @@ def hello():
     """
 
 
+security = HTTPBasic()
+
+
 @app.post("/login_session")
-def create_session(response: Response, query: List[str] = Query(None)):
+def create_session(response: Response, credentials: HTTPBasicCredentials = Depends(security)):
     response.status_code = 401
-    if query is not None and "4dm1n" and "NotSoSecurePa$$" in query:
+    correct_username = secrets.compare_digest(credentials.username, "4dm1n")
+    correct_password = secrets.compare_digest(credentials.password, "NotSoSecurePa$$")
+    if correct_username and correct_password:
         response.status_code = 201
         session_token = sha256(f"4dm1nNotSoSecurePa$${app.secret_key}".encode()).hexdigest()
         response.set_cookie(key="session_token", value=session_token)
@@ -120,9 +127,11 @@ def create_session(response: Response, query: List[str] = Query(None)):
 
 
 @app.post("/login_token")
-def check_token(response: Response, query: List[str] = Query(None)):
+def check_token(response: Response, credentials: HTTPBasicCredentials = Depends(security)):
     response.status_code = 401
-    if query is not None and "4dm1n" and "NotSoSecurePa$$" in query:
+    correct_username = secrets.compare_digest(credentials.username, "4dm1n")
+    correct_password = secrets.compare_digest(credentials.password, "NotSoSecurePa$$")
+    if correct_username and correct_password:
         response.status_code = 201
         token = sha256(f"4dm1nNotSoSecurePa$${app.secret_key}".encode()).hexdigest()
         app.secret_key += 1
