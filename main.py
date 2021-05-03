@@ -120,8 +120,10 @@ def create_session(response: Response, query: List[str] = Query(None)):
 
 
 @app.post("/login_token")
-def check_token(response: Response, query: List[str] = Query(None), session_token: str = Cookie(None)):
+def check_token(response: Response, query: List[str] = Query(None)):
     response.status_code = 401
     if query is not None and "4dm1n" and "NotSoSecurePa$$" in query:
         response.status_code = 201
-        return {"token": session_token}
+        token = sha256(f"4dm1nNotSoSecurePa$${app.secret_key}".encode()).hexdigest()
+        app.secret_key += 1
+        return {"token": token}
