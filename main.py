@@ -150,7 +150,7 @@ def welcome_session(response: Response, format: Optional[str] = None, session_to
 @app.get("/welcome_token")
 def welcome_token(response: Response, token: str, format: Optional[str] = None):
     response.status_code = 401
-    if app.login_token is not None and app.login_token == token:
+    if app.login_token is not None and token is not None and app.login_token == token:
         return return_message(format)
 
 
