@@ -1,3 +1,4 @@
+import collections
 import secrets
 import datetime
 from datetime import timedelta, date
@@ -15,8 +16,9 @@ app.counter = 0
 app.patient_id = 0
 app.patients_register = dict()
 app.secret_key = 0
-app.login_tokens = list()
-app.session_tokens = list()
+app.login_tokens = collections.deque(maxlen=3)
+app.session_tokens = collections.deque(maxlen=3)
+
 
 @app.get("/")
 def root():
