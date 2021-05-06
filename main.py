@@ -1,6 +1,7 @@
 import collections
 import secrets
 import datetime
+import sqlite3
 from datetime import timedelta, date
 from typing import Optional, List
 
@@ -18,6 +19,10 @@ app.patients_register = dict()
 app.secret_key = 0
 app.login_tokens = collections.deque(maxlen=3)
 app.session_tokens = collections.deque(maxlen=3)
+app.db_connection = None
+
+
+# 1st lecture
 
 
 @app.get("/")
@@ -102,6 +107,9 @@ def get_patient(response: Response, id: int):
         return app.patients_register[id]
 
 
+# 3rd lecture
+
+
 @app.get("/hello", response_class=HTMLResponse)
 def hello():
     today = date.today()
@@ -184,3 +192,42 @@ def logout_token(response: Response, token: str, format: Optional[str] = None):
 @app.get("/logged_out")
 def logged_out(format: Optional[str] = None):
     return return_message(text="Logged out!", message_format=format)
+
+
+# 4th lecture
+
+@app.on_event("startup")
+async def startup():
+    app.db_connection = sqlite3.connect("northwind.db")
+    app.db_connection.text_factory = lambda b: b.decode(errors="ignore")
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    app.db_connection.close()
+
+
+@app.get("/categories", status_code=200)
+async def print_categories():
+    cursor = app.db_connection.cursor()
+    cursor.row_factory = lambda cursor, col: {"id": col[0], "name": col[1]}
+    result = cursor.execute("SELECT CategoryID, CategoryName FROM Categories").fetchall()
+    return {"categories": result}
+
+
+def xstr(s):
+    if s is None:
+        return ''
+    return str(s)
+
+
+@app.get("/customers", status_code=200)
+async def print_customers():
+    cursor = app.db_connection.cursor()
+    cursor.row_factory = lambda cursor, col: {"id": col[0],
+                                              "name": col[1],
+                                              "full_address": xstr(col[2]) + " "
+                                                            + xstr(col[3]) + " "
+                                                            + xstr(col[4])}
+    result = cursor.execute("SELECT CustomerID, CompanyName, Address, PostalCode, Country FROM Customers").fetchall()
+    return {"customers": result}
