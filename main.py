@@ -243,3 +243,24 @@ async def get_product(response: Response, id: int):
     if result is not None:
         response.status_code = 200
         return result
+
+
+@app.get("/employees")
+async def get_employees(response: Response, limit: int, offset: int, order: str):
+    response.status_code = 200
+    cursor = app.db_connection.cursor()
+    cursor.row_factory = lambda cursor, col: {"id": col[0],
+                                              "last_name": col[1],
+                                              "first_name": col[2],
+                                              "city": col[3]}
+    order_by = ["first_name", "last_name", "city"]
+    if not any(order == possibility for possibility in order_by):
+        response.status_code = 400
+        return
+    result = cursor.execute("SELECT EmployeeID, LastName, FirstName, City "
+                            "FROM Employees "
+                            "ORDER BY :order "
+                            "LIMIT :limit "
+                            "OFFSET :offset",
+                            {"order": order, "limit": limit, "offset": offset}).fetchall()
+    return {"employees": result}
