@@ -231,3 +231,15 @@ async def print_customers():
                                                             + xstr(col[4])}
     result = cursor.execute("SELECT CustomerID, CompanyName, Address, PostalCode, Country FROM Customers").fetchall()
     return {"customers": result}
+
+
+@app.get("/products/{id}")
+async def get_product(response: Response, id: int):
+    response.status_code = 404
+    cursor = app.db_connection.cursor()
+    cursor.row_factory = lambda cursor, col: {"id": col[0], "name": col[1]}
+    result = cursor.execute("SELECT ProductID, ProductName FROM Products WHERE ProductID = :id",
+                            {"id": id}).fetchone()
+    if result is not None:
+        response.status_code = 200
+        return result
