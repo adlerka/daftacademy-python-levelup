@@ -259,7 +259,7 @@ async def get_employees(response: Response, limit: int, offset: int, order: str)
         return
     result = cursor.execute("SELECT EmployeeID, LastName, FirstName, City "
                             "FROM Employees "
-                            "ORDER BY :order "
+                            "ORDER BY :order ASC"
                             "LIMIT :limit "
                             "OFFSET :offset",
                             {"order": order, "limit": limit, "offset": offset}).fetchall()
