@@ -285,7 +285,7 @@ async def order_details(response: Response, id: int):
     cursor = app.db_connection.cursor()
     cursor.row_factory = sqlite3.Row
     result = cursor.execute(
-        '''SELECT o.OrderID id, c.CompanyName name, 
+        '''SELECT o.OrderID id, c.CompanyName customer, 
 	              od.Quantity quantity,
 	              ROUND((od.UnitPrice * od.Quantity) - od.Discount * (od.UnitPrice * od.Quantity),2) total_price
            FROM Orders o 
