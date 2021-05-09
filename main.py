@@ -5,7 +5,7 @@ import sqlite3
 from datetime import timedelta, date
 from typing import Optional, List
 
-from fastapi import FastAPI, Request, Response, Query, Cookie, Depends
+from fastapi import FastAPI, Request, Response, Query, Cookie, Depends, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from hashlib import sha512, sha256
 
@@ -277,3 +277,22 @@ async def products_extended(response: Response):
            JOIN Categories c ON p.CategoryID = c.CategoryID 
            JOIN Suppliers s ON p.SupplierID = s.SupplierID''').fetchall()
     return {"products_extended": result}
+
+
+@app.get("/products/{id}/orders")
+async def order_details(response: Response, id: int):
+    response.status_code = 200
+    cursor = app.db_connection.cursor()
+    cursor.row_factory = sqlite3.Row
+    result = cursor.execute(
+        '''SELECT o.OrderID id, c.CompanyName name, 
+	              od.Quantity quantity,
+	              ROUND((od.UnitPrice * od.Quantity) - od.Discount * (od.UnitPrice * od.Quantity),2) total_price
+           FROM Orders o 
+	              JOIN Customers c ON o.CustomerID = c.CustomerID 
+	              JOIN "Order Details" od ON o.OrderID = od.OrderID	
+           WHERE od.ProductID = :id
+        ''', {"id": id}).fetchall()
+    if result:
+        return {"orders": result}
+    raise HTTPException(status_code=404)
