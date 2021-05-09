@@ -227,8 +227,8 @@ async def print_customers():
     cursor.row_factory = lambda cursor, col: {"id": col[0],
                                               "name": col[1],
                                               "full_address": xstr(col[2]) + " "
-                                                            + xstr(col[3]) + " "
-                                                            + xstr(col[4])}
+                                                              + xstr(col[3]) + " "
+                                                              + xstr(col[4])}
     result = cursor.execute("SELECT CustomerID, CompanyName, Address, PostalCode, Country FROM Customers").fetchall()
     return {"customers": result}
 
@@ -246,21 +246,19 @@ async def get_product(response: Response, id: int):
 
 
 @app.get("/employees")
-async def get_employees(response: Response, limit: int, offset: int, order: str):
+async def get_employees(response: Response, limit: Optional[int] = -1, offset: Optional[int] = 0,
+                        order: Optional[str] = 'EmployeeID'):
     response.status_code = 200
     cursor = app.db_connection.cursor()
-    cursor.row_factory = lambda cursor, col: {"id": col[0],
-                                              "last_name": col[1],
-                                              "first_name": col[2],
-                                              "city": col[3]}
-    order_by = ["first_name", "last_name", "city"]
+    cursor.row_factory = sqlite3.Row
+    order_by = ['first_name', 'last_name', 'city']
     if not any(order == possibility for possibility in order_by):
         response.status_code = 400
         return
-    result = cursor.execute("SELECT EmployeeID, LastName, FirstName, City "
-                            "FROM Employees "
-                            "ORDER BY :order ASC"
-                            "LIMIT :limit "
-                            "OFFSET :offset",
-                            {"order": order, "limit": limit, "offset": offset}).fetchall()
+    result = cursor.execute(f"""SELECT EmployeeID id, LastName last_name, FirstName first_name, City city 
+                            FROM Employees e 
+                            ORDER BY {order} 
+                            LIMIT :limit 
+                            OFFSET :offset""",
+                            {'limit': limit, 'offset': offset}).fetchall()
     return {"employees": result}
