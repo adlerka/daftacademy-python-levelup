@@ -264,3 +264,16 @@ async def get_employees(response: Response, limit: Optional[int] = -1, offset: O
                             OFFSET :offset""",
                             {'limit': limit, 'offset': offset}).fetchall()
     return {"employees": result}
+
+
+@app.get("/products_extended")
+async def products_extended(response: Response):
+    response.status_code = 200
+    cursor = app.db_connection.cursor()
+    cursor.row_factory = sqlite3.Row
+    result = cursor.execute(
+        '''SELECT p.ProductID id, p.ProductName name, c.CategoryName category, s.CompanyName supplier
+           FROM Products p 
+           JOIN Categories c ON p.CategoryID = c.CategoryID 
+           JOIN Suppliers s ON p.SupplierID = s.SupplierID''').fetchall()
+    return {"products_extended": result}
