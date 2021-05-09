@@ -228,8 +228,10 @@ async def print_customers():
                                               "name": col[1],
                                               "full_address": xstr(col[2]) + " "
                                                               + xstr(col[3]) + " "
-                                                              + xstr(col[4])}
-    result = cursor.execute("SELECT CustomerID, CompanyName, Address, PostalCode, Country FROM Customers").fetchall()
+                                                              + xstr(col[4]) + " "
+                                                              + xstr(col[5])}
+    result = cursor.execute('''SELECT CustomerID, CompanyName, Address, PostalCode, City, Country 
+                                FROM Customers''').fetchall()
     return {"customers": result}
 
 
