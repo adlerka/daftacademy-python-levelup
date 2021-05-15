@@ -12,6 +12,8 @@ from hashlib import sha512, sha256
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic.main import BaseModel
 
+from views import router as northwind_api_router
+
 app = FastAPI()
 app.counter = 0
 app.patient_id = 0
@@ -20,6 +22,8 @@ app.secret_key = 0
 app.login_tokens = collections.deque(maxlen=3)
 app.session_tokens = collections.deque(maxlen=3)
 app.db_connection = None
+
+app.include_router(northwind_api_router, tags=["northwind"])
 
 
 # 1st lecture
