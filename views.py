@@ -24,3 +24,18 @@ async def get_shipper(shipper_id: PositiveInt, db: Session = Depends(database.ge
 @router.get("/shippers", response_model=List[schemas.Shipper])
 async def get_shippers(db: Session = Depends(database.get_db)):
     return crud.get_shippers(db)
+
+
+# lecture 5
+
+@router.get("/suppliers", response_model=List[schemas.SupplierSimplified])
+async def get_suppliers(db: Session = Depends(database.get_db)):
+    return crud.get_suppliers(db)
+
+
+@router.get("/suppliers/{id}", response_model=schemas.Supplier)
+async def get_supplier(id: PositiveInt, db: Session = Depends(database.get_db)):
+    db_supplier = crud.get_supplier(db, id)
+    if db_supplier is None:
+        raise HTTPException(status_code=404, detail="Supplier not found")
+    return db_supplier
