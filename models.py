@@ -1,6 +1,8 @@
 # coding: utf-8
-from sqlalchemy import CHAR, Column, Date, Float, Integer, LargeBinary, SmallInteger, String, Table, Text, text
+from sqlalchemy import CHAR, Column, Date, Float, Integer, LargeBinary, SmallInteger, String, Table, Text, text, \
+    ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 metadata = Base.metadata
@@ -13,6 +15,8 @@ class Category(Base):
     CategoryName = Column(String(15), nullable=False)
     Description = Column(Text)
     Picture = Column(LargeBinary)
+
+    products = relationship('Product', back_populates='category')
 
 
 class Customercustomerdemo(Base):
@@ -109,14 +113,17 @@ class Product(Base):
 
     ProductID = Column(SmallInteger, primary_key=True, server_default=text("nextval('products_productid_seq'::regclass)"))
     ProductName = Column(String(40), nullable=False)
-    SupplierID = Column(SmallInteger)
-    CategoryID = Column(SmallInteger)
+    SupplierID = Column(SmallInteger, ForeignKey("suppliers.SupplierID"))
+    CategoryID = Column(SmallInteger, ForeignKey("categories.CategoryID"))
     QuantityPerUnit = Column(String(20))
     UnitPrice = Column(Float)
     UnitsInStock = Column(SmallInteger)
     UnitsOnOrder = Column(SmallInteger)
     ReorderLevel = Column(SmallInteger)
     Discontinued = Column(Integer, nullable=False)
+
+    supplier = relationship('Supplier', back_populates='products')
+    category = relationship('Category', lazy='immediate', back_populates='products')
 
 
 class Region(Base):
@@ -157,6 +164,8 @@ class Supplier(Base):
     Phone = Column(String(24))
     Fax = Column(String(24))
     HomePage = Column(Text)
+
+    products = relationship('Product', back_populates='supplier')
 
 
 class Territory(Base):
