@@ -52,3 +52,11 @@ async def get_products_from_supplier(id: PositiveInt, db: Session = Depends(data
 @router.post("/suppliers", response_model=schemas.Supplier, status_code=201)
 async def create_supplier(new_supplier: schemas.NewSupplier, db: Session = Depends(database.get_db)):
     return crud.create_supplier(db, new_supplier)
+
+
+@router.put("/suppliers/id", response_model=schemas.Supplier)
+async def update_supplier(id: int, supplier_update: schemas.SupplierUpdate, db: Session = Depends(database.get_db)):
+    updated_supplier = crud.update_supplier(db, id, supplier_update)
+    if not updated_supplier:
+        raise HTTPException(status_code=401)
+    return updated_supplier
