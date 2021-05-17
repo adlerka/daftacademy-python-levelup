@@ -61,7 +61,7 @@ def update_supplier(db: Session, id: int, supplier_update: schemas.SupplierUpdat
 def delete_supplier(db: Session, id: int):
     check_supplier = get_supplier(db, id)
     if not check_supplier:
-        raise HTTPException(status_code=401)
+        raise HTTPException(status_code=404)
     db.query(models.Supplier)\
       .filter(models.Supplier.SupplierID == id)\
       .delete()
