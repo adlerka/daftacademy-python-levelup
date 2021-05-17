@@ -54,7 +54,7 @@ async def create_supplier(new_supplier: schemas.NewSupplier, db: Session = Depen
     return crud.create_supplier(db, new_supplier)
 
 
-@router.put("/suppliers/id", response_model=schemas.Supplier)
+@router.put("/suppliers/{id}", response_model=schemas.Supplier)
 async def update_supplier(id: int, supplier_update: schemas.SupplierUpdate, db: Session = Depends(database.get_db)):
     updated_supplier = crud.update_supplier(db, id, supplier_update)
     if not updated_supplier:
@@ -62,6 +62,6 @@ async def update_supplier(id: int, supplier_update: schemas.SupplierUpdate, db: 
     return updated_supplier
 
 
-@router.delete("/suppliers/id", status_code=204)
+@router.delete("/suppliers/{id}", status_code=204)
 async def delete_supplier(id: int, db: Session = Depends(database.get_db)):
     crud.delete_supplier(db, id)
