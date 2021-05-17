@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import func, update
+from fastapi import HTTPException
 
 # from . import models
 import models
@@ -55,3 +56,13 @@ def update_supplier(db: Session, id: int, supplier_update: schemas.SupplierUpdat
     db.execute(update_statement)
     db.commit()
     return get_supplier(db, id)
+
+
+def delete_supplier(db: Session, id: int):
+    check_supplier = get_supplier(db, id)
+    if not check_supplier:
+        raise HTTPException(status_code=401)
+    db.query(models.Supplier)\
+      .filter(models.Supplier.SupplierID == id)\
+      .delete()
+    db.commit()

@@ -60,3 +60,8 @@ async def update_supplier(id: int, supplier_update: schemas.SupplierUpdate, db: 
     if not updated_supplier:
         raise HTTPException(status_code=401)
     return updated_supplier
+
+
+@router.delete("/suppliers/id", status_code=204)
+async def delete_supplier(id: int, db: Session = Depends(database.get_db)):
+    crud.delete_supplier(db, id)
